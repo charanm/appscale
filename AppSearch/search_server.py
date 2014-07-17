@@ -8,6 +8,8 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+import search
+
 from google.appengine.api.search import search_service_pb
 
 from google.appengine.ext.remote_api import remote_api_pb
@@ -37,7 +39,7 @@ class MainHandler(tornado.web.RequestHandler):
         the request from the AppServer in an encoded protocol buffer 
         format.
     """
-    global task_queue    
+    global search    
     request = self.request
     http_request_data = request.body
     pb_type = request.headers['protocolbuffertype']
@@ -57,7 +59,7 @@ class MainHandler(tornado.web.RequestHandler):
     """ Handles get request for the web server. Returns that it is currently
         up in json.
     """
-    global task_queue    
+    global search    
     self.write('{"status":"up"}')
     self.finish()
 
@@ -70,7 +72,7 @@ class MainHandler(tornado.web.RequestHandler):
       app_id: The application ID that is sending this request.
       http_request_data: Encoded protocol buffer.
     """
-    global task_queue    
+    global search    
     apirequest = remote_api_pb.Request()
     apirequest.ParseFromString(http_request_data)
     apiresponse = remote_api_pb.Response()
@@ -97,20 +99,19 @@ class MainHandler(tornado.web.RequestHandler):
       http_request_data = apirequest.request()
 
     if method == "IndexDocument":
-      response, errcode, errdetail = task_queue.fetch_queue_stats(app_id,
+      response, errcode, errdetail = search.index_document(app_id,
                                                  http_request_data)
     elif method == "DeleteDocument":
-      response, errcode, errdetail = task_queue.purge_queue(app_id,
+      response, errcode, errdetail = search.delete_document(app_id,
                                                  http_request_data)
     elif method == "ListIndexes":
-      response, errcode, errdetail = task_queue.delete(app_id,
+      response, errcode, errdetail = search.list_indexes(app_id,
                                                  http_request_data)
     elif method == "ListDocuments":
-      response, errcode, errdetail = task_queue.query_and_own_tasks(
-                                                 app_id,
+      response, errcode, errdetail = search.list_documents( app_id,
                                                  http_request_data)
     elif method == "Search":
-      response, errcode, errdetail = task_queue.add(app_id,
+      response, errcode, errdetail = search.search(app_id,
                                                  http_request_data)
    
     if response:
@@ -126,8 +127,8 @@ class MainHandler(tornado.web.RequestHandler):
 
 def main():
   """ Main function which initializes and starts the tornado server. """
-  global task_queue
-  task_queue = distributed_tq.DistributedTaskQueue()
+  global search
+  search = search.Search()
   search_application = tornado.web.Application([
     # Takes protocol buffers from the AppServers
     (r"/*", MainHandler)
