@@ -9,7 +9,6 @@ import hashlib
 import json
 import logging
 import os
-import socket
 import sys
 import time
  
@@ -87,6 +86,21 @@ class Search():
                          'reason': 'Missing ' + tag + ' tag'}
         break
     return json_response
+
+  def index_document(self, app_id, http_data):
+    """ """
+
+  def delete_document(self, app_id, http_data):
+    """ """
+
+  def list_indexes(self, app_id, http_data):
+    """ """
+
+  def list_documents(self, app_id, http_data):
+    """ """
+
+  def search(self, app_id, http_data):
+    """ """
 
   def fetch_queue_stats(self, app_id, http_data):
     """ Gets statistics about tasks in queues.

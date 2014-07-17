@@ -8,7 +8,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
-import search
+import search_impl
 
 from google.appengine.api.search import search_service_pb
 
@@ -59,7 +59,6 @@ class MainHandler(tornado.web.RequestHandler):
     """ Handles get request for the web server. Returns that it is currently
         up in json.
     """
-    global search    
     self.write('{"status":"up"}')
     self.finish()
 
@@ -128,7 +127,7 @@ class MainHandler(tornado.web.RequestHandler):
 def main():
   """ Main function which initializes and starts the tornado server. """
   global search
-  search = search.Search()
+  search = search_impl.Search()
   search_application = tornado.web.Application([
     # Takes protocol buffers from the AppServers
     (r"/*", MainHandler)
